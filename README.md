@@ -49,11 +49,13 @@ Denver Nuggets vs San Antonio Spurs  =>  San Antonio Spurs wins (53.0% probabili
 Oklahoma City Thunder vs San Antonio Spurs  =>  Oklahoma City Thunder wins (54.2% probability)
 
 ============================================================
+
 [ NBA FINALS ]
 
 --- Finals Series ---
 
 Detroit Pistons vs Oklahoma City Thunder  =>  Oklahoma City Thunder wins (62.5% probability)
+
 ============================================================
 
 NBA CHAMPION: OKLAHOMA CITY THUNDER

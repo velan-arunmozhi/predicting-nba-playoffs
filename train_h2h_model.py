@@ -82,9 +82,6 @@ def main():
         print("Using random 80/20 split due to limited recent test data.")
         train_df, test_df = train_test_split(h2h_df, test_size=0.2, random_state=42)
 
-    train_df = pd.DataFrame(train_df)
-    test_df = pd.DataFrame(test_df)
-
     X_col = [c for c in h2h_df.columns if c.endswith("_DIFF")]
 
     X_train = train_df[X_col]
@@ -92,6 +89,9 @@ def main():
 
     X_test = test_df[X_col]
     y_test = test_df["TARGET"]
+
+    X_all = h2h_df[X_col]
+    y_all = h2h_df["TARGET"]
 
     # 4. Train XGBoost
     print("\nPerforming Hyperparameter Tuning for XGBoost...")
@@ -121,26 +121,43 @@ def main():
 
     model = grid_search.best_estimator_
 
-    # 5. Evaluate
+    # 5. Evaluate on Test Set
     y_pred = model.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
     print(f"\nTest Accuracy: {acc:.2%}")
     print("Classification Report:")
     print(classification_report(y_test, y_pred))
 
-    # 6. Save the model
+    # 6. Train final model on all data
+    print("\nTraining final model on all available data (2015-present)...")
+    final_model = XGBClassifier(**grid_search.best_params_, random_state=42, eval_metric="logloss")
+    final_model.fit(X_all, y_all)
+
+    # 7. Save both test and final models
     os.makedirs("models", exist_ok=True)
-    model_path = "models/xgboost_h2h_model.joblib"
+    
+    model_path = "models/xgboost_h2h_test_model.joblib"
     joblib.dump(model, model_path)
-    print(f"Model saved to {model_path}")
+    print(f"\nTest model saved to {model_path}")
+    
+    model_path = "models/xgboost_h2h_model.joblib"
+    joblib.dump(final_model, model_path)
+    print(f"\nFinal model saved to {model_path}")
 
     # Feature Importances
-    importances = pd.DataFrame(
+    importances_test = pd.DataFrame(
         {"Feature": X_col, "Importance": model.feature_importances_}
     ).sort_values("Importance", ascending=False)
+    
+    importances_final = pd.DataFrame(
+        {"Feature": X_col, "Importance": final_model.feature_importances_}
+    ).sort_values("Importance", ascending=False)
 
-    print("\nTop 5 Most Important Features:")
-    print(importances.head(5).to_string(index=False))
+    print("\nTop 5 Most Important Features (Test):")
+    print(importances_test.head(5).to_string(index=False))
+
+    print("\nTop 5 Most Important Features (Final Model):")
+    print(importances_final.head(5).to_string(index=False))
 
 
 if __name__ == "__main__":

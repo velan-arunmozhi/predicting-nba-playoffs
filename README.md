@@ -1,9 +1,7 @@
-Predicted Bracket:
-============================================================
-NBA Playoff Bracket Simulator
-============================================================
+## [Predicted Bracket](https://fantasy.espn.com/free-prize-games/sharer?challengeId=281&from=espn&context=FINAL_FOUR&entryId=258e93d0-3b41-11f1-8477-87400cd67949&game=null&rcIds=1.1,1.2,2.1,2.2,1.1,2.1,1.1&teamIds=25,24,8,2,25,8,25)
+### NBA Playoff Bracket Simulator
 
-[ EASTERN CONFERENCE ]
+### EASTERN CONFERENCE
 
 --- First Round ---
 
@@ -26,7 +24,7 @@ New York Knicks vs Boston Celtics  =>  Boston Celtics wins (55.5% probability)
 Detroit Pistons vs Boston Celtics  =>  Detroit Pistons wins (50.3% probability)
 
 
-[ WESTERN CONFERENCE ]
+### WESTERN CONFERENCE
 
 --- First Round ---
 
@@ -48,16 +46,12 @@ Denver Nuggets vs San Antonio Spurs  =>  San Antonio Spurs wins (53.0% probabili
 
 Oklahoma City Thunder vs San Antonio Spurs  =>  Oklahoma City Thunder wins (54.2% probability)
 
-============================================================
-
-[ NBA FINALS ]
+### NBA FINALS
 
 --- Finals Series ---
 
 Detroit Pistons vs Oklahoma City Thunder  =>  Oklahoma City Thunder wins (62.5% probability)
 
-============================================================
 
-NBA CHAMPION: OKLAHOMA CITY THUNDER
+### NBA CHAMPION: OKLAHOMA CITY THUNDER
 
-============================================================

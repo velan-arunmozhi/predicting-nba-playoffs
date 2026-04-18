@@ -43,14 +43,6 @@ def predict_series(
 ):
     """Predict the winner between two teams based on their regular season stats."""
 
-    # Fix common naming issues just in case
-    mapping = {
-        "Los Angeles Clippers": "LA Clippers",
-        "New Orleans Timberwolves": "New Orleans Pelicans",
-    }
-    team_a = mapping.get(team_a, team_a)
-    team_b = mapping.get(team_b, team_b)
-
     stats_a = team_stats[
         (team_stats["SEASON"] == season) & (team_stats["TEAM_NAME"] == team_a)
     ]

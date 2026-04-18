@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import joblib
 from xgboost import XGBClassifier
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report
 
 
@@ -82,6 +82,9 @@ def main():
         print("Using random 80/20 split due to limited recent test data.")
         train_df, test_df = train_test_split(h2h_df, test_size=0.2, random_state=42)
 
+    train_df = pd.DataFrame(train_df)
+    test_df = pd.DataFrame(test_df)
+
     X_col = [c for c in h2h_df.columns if c.endswith("_DIFF")]
 
     X_train = train_df[X_col]
@@ -91,15 +94,32 @@ def main():
     y_test = test_df["TARGET"]
 
     # 4. Train XGBoost
-    print("\nTraining XGBoost Classifier...")
-    model = XGBClassifier(
-        n_estimators=100,
-        learning_rate=0.1,
-        max_depth=3,
-        random_state=42,
-        eval_metric="logloss",
+    print("\nPerforming Hyperparameter Tuning for XGBoost...")
+    base_model = XGBClassifier(random_state=42, eval_metric="logloss")
+
+    param_grid = {
+        "n_estimators": [50, 100, 150],
+        "max_depth": [2, 3, 4],
+        "learning_rate": [0.01, 0.05, 0.1, 0.2],
+        "subsample": [0.8, 0.9, 1.0],
+        "colsample_bytree": [0.8, 0.9, 1.0],
+        "min_child_weight": [1, 2, 3],
+    }
+
+    grid_search = GridSearchCV(
+        estimator=base_model,
+        param_grid=param_grid,
+        scoring="accuracy",
+        cv=5,
+        n_jobs=-1,
+        verbose=1,
     )
-    model.fit(X_train, y_train)
+
+    grid_search.fit(X_train, y_train)
+    print(f"\nBest parameters found: {grid_search.best_params_}")
+    print(f"Best CV accuracy: {grid_search.best_score_:.2%}")
+
+    model = grid_search.best_estimator_
 
     # 5. Evaluate
     y_pred = model.predict(X_test)

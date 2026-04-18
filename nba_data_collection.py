@@ -2,10 +2,9 @@
 NBA Playoff Prediction — Full Data Collection Script
 =====================================================
 Collects:
-  1. Regular season team advanced stats (2015-2024) via nba_api
-  2. Playoff series results (2015-2024) scraped from Basketball Reference
+  1. Regular season team advanced stats (2015-2026) via nba_api
+  2. Playoff series results (2015-2025) scraped from Basketball Reference
   3. Team game logs for momentum features (last-20-game rolling stats)
-  4. Playoff team flags from league standings
 
 Requirements:
     pip install nba_api pandas requests beautifulsoup4 lxml tqdm
@@ -21,14 +20,13 @@ from tqdm import tqdm
 from nba_api.stats.endpoints import (
     leaguedashteamstats,
     teamgamelogs,
-    leaguestandings,
 )
 
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
 
-SEASONS = [f"{y}-{str(y + 1)[2:]}" for y in range(2015, 2025)]  # 2015-16 to 2024-25
+SEASONS = [f"{y}-{str(y + 1)[2:]}" for y in range(2015, 2026)]  # 2015-16 to 2025-26
 BR_BASE = "https://www.basketball-reference.com"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -253,6 +251,9 @@ def collect_all_playoff_results():
     """Collect playoff series results for all seasons."""
     all_series = []
     for season in tqdm(SEASONS, desc="Playoff results"):
+        if season == "2025-26":
+            continue
+
         year = int(season.split("-")[0]) + 1
         all_series.extend(parse_br_playoff_series(year))
 
@@ -316,27 +317,7 @@ def collect_momentum_features(team_stats):
 
 
 # ---------------------------------------------------------------------------
-# 4. Playoff flags from standings
-# ---------------------------------------------------------------------------
-
-
-def fetch_playoff_teams(season):
-    """Return {TEAM_ID, SEASON, MADE_PLAYOFFS} from LeagueStandings."""
-    print(f"  Fetching standings: {season}")
-    df = safe_request(
-        lambda: leaguestandings.LeagueStandings(season=season).get_data_frames()[0]
-    )
-    df["SEASON"] = season
-    df["MADE_PLAYOFFS"] = df["PlayoffRank"].apply(
-        lambda x: 1 if pd.notna(x) and int(x) > 0 else 0
-    )
-    return df[["TeamID", "SEASON", "MADE_PLAYOFFS"]].rename(
-        columns={"TeamID": "TEAM_ID"}
-    )
-
-
-# ---------------------------------------------------------------------------
-# 5. Normalize features by season (z-score within each season)
+# 4. Normalize features by season (z-score within each season)
 # ---------------------------------------------------------------------------
 
 FEATURE_COLS = [
@@ -366,16 +347,13 @@ def normalize_by_season(df, cols):
 
 
 # ---------------------------------------------------------------------------
-# 6. Build final ML-ready dataset
+# 5. Build final ML-ready dataset
 # ---------------------------------------------------------------------------
 
 
-def build_dataset(team_stats, playoff_results, momentum, playoff_flags):
+def build_dataset(team_stats, playoff_results, momentum):
     """Join all sources into a single ML-ready DataFrame."""
     df = team_stats.copy()
-
-    df = df.merge(playoff_flags, on=["TEAM_ID", "SEASON"], how="left")
-    df["MADE_PLAYOFFS"] = df["MADE_PLAYOFFS"].fillna(0).astype(int)
 
     if not momentum.empty:
         df = df.merge(momentum, on=["TEAM_ID", "SEASON"], how="left")
@@ -410,36 +388,28 @@ def main():
     print("NBA Playoff Prediction — Data Collection")
     print("=" * 60)
 
-    print("\n[1/5] Collecting regular season team stats...")
+    print("\n[1/4] Collecting regular season team stats...")
     team_stats = collect_all_team_stats()
-    team_stats.to_csv("datasets/team_stats_2015_2025.csv", index=False)
-    print("  Saved: datasets/team_stats_2015_2025.csv")
+    team_stats.to_csv("datasets/team_stats_2015_2026.csv", index=False)
+    print("  Saved: datasets/team_stats_2015_2026.csv")
 
-    print("\n[2/5] Scraping playoff results from Basketball Reference...")
+    print("\n[2/4] Scraping playoff results from Basketball Reference...")
     playoff_results = collect_all_playoff_results()
     playoff_results.to_csv("datasets/playoff_results_2015_2025.csv", index=False)
     print("  Saved: datasets/playoff_results_2015_2025.csv")
 
-    print("\n[3/5] Collecting playoff team flags from standings...")
-    flags_list = []
-    for season in tqdm(SEASONS, desc="Standings"):
-        flags_list.append(fetch_playoff_teams(season))
-    playoff_flags = pd.concat(flags_list, ignore_index=True)
-    playoff_flags.to_csv("datasets/playoff_flags_2015_2025.csv", index=False)
-    print("  Saved: datasets/playoff_flags_2015_2025.csv")
-
-    print("\n[4/5] Collecting game logs for momentum features...")
+    print("\n[3/4] Collecting game logs for momentum features...")
     print("  ~900 API calls, ~30 min. Press Ctrl+C to skip.")
     try:
         momentum = collect_momentum_features(team_stats)
-        momentum.to_csv("datasets/momentum_features_2015_2025.csv", index=False)
-        print("  Saved: datasets/momentum_features_2015_2025.csv")
+        momentum.to_csv("datasets/momentum_features_2015_2026.csv", index=False)
+        print("  Saved: datasets/momentum_features_2015_2026.csv")
     except KeyboardInterrupt:
         print("  Skipped — momentum features will be absent.")
         momentum = pd.DataFrame()
 
-    print("\n[5/5] Building final ML-ready dataset...")
-    dataset = build_dataset(team_stats, playoff_results, momentum, playoff_flags)
+    print("\n[4/4] Building final ML-ready dataset...")
+    dataset = build_dataset(team_stats, playoff_results, momentum)
     dataset.to_csv("datasets/nba_playoff_prediction_dataset.csv", index=False)
     print("  Saved: datasets/nba_playoff_prediction_dataset.csv")
 
@@ -447,14 +417,13 @@ def main():
     print("Collection complete. Output files:")
     print("  team_stats_2015_2025.csv            raw advanced + base stats")
     print("  playoff_results_2015_2025.csv       series winners / losers")
-    print("  playoff_flags_2015_2025.csv         which teams made playoffs")
     print("  momentum_features_2015_2025.csv     last-20-game rolling stats")
     print("  nba_playoff_prediction_dataset.csv  final ML-ready dataset")
     print("=" * 60)
 
     norm_cols = [c for c in dataset.columns if c.endswith("_norm")]
     print(f"\nNormalized feature columns ({len(norm_cols)}): {norm_cols}")
-    print(f"Targets: MADE_PLAYOFFS, SERIES_WINS")
+    print(f"Targets: SERIES_WINS")
     print(f"Shape:   {dataset.shape}")
 
 

@@ -73,9 +73,9 @@ def main():
     h2h_df.to_csv("datasets/h2h_matchups_dataset.csv", index=False)
 
     # 3. Train / Test Split (Chronological)
-    # Train on 2015-16 to 2022-23, Test on 2023-24 (and 24-25 if we had results)
-    train_df = h2h_df[h2h_df["SEASON"] < "2023-24"]
-    test_df = h2h_df[h2h_df["SEASON"] >= "2023-24"]
+    # Train on 2015-16 to 2023-24, Test on 2024-25
+    train_df = h2h_df[h2h_df["SEASON"] < "2024-25"]
+    test_df = h2h_df[h2h_df["SEASON"] == "2024-25"]
 
     # If the test set is empty (e.g., if scraping 2024 failed), fallback to random split
     if test_df.empty or len(test_df) < 10:

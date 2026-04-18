@@ -1,28 +1,24 @@
 import pandas as pd
 import joblib
 
-# The season to pull team stats from. Modify this to use a different season.
-# Example: '2024-25' corresponds to the 2024-2025 regular season.
-SEASON = "2024-25"
+# The season to pull team stats from
+SEASON = "2025-26"
 
 # Sample bracket for demonstration (you can replace these with the actual teams once set).
 # Must match exactly the TEAM_NAME in team_stats_2015_2025.csv
 # Note: "Los Angeles Clippers" should be "LA Clippers".
 EAST_BRACKET = [
-    ("Boston Celtics", "Orlando Magic"),
-    ("New York Knicks", "Detroit Pistons"),
-    ("Milwaukee Bucks", "Indiana Pacers"),
-    ("Cleveland Cavaliers", "Miami Heat"),
+    ("Detroit Pistons", "Orlando Magic"),
+    ("Cleveland Cavaliers", "Toronto Raptors"),
+    ("New York Knicks", "Atlanta Hawks"),
+    ("Boston Celtics", "Philadelphia 76ers"),
 ]
 
 WEST_BRACKET = [
-    ("Oklahoma City Thunder", "Memphis Grizzlies"),
-    ("Denver Nuggets", "LA Clippers"),
-    (
-        "Minnesota Timberwolves",
-        "Los Angeles Lakers",
-    ),
-    ("Houston Rockets", "Golden State Warriors"),
+    ("Oklahoma City Thunder", "Phoenix Suns"),
+    ("Los Angeles Lakers", "Houston Rockets"),
+    ("Denver Nuggets", "Minnesota Timberwolves"),
+    ("San Antonio Spurs", "Portland Trail Blazers"),
 ]
 
 
